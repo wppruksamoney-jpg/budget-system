@@ -145,6 +145,22 @@ header select,header input[type=month]{font-size:12px;border:1px solid var(--bor
 .role-admin{background:#dbeafe;color:#1d4ed8}
 .role-viewer{background:#f0fdf4;color:#15652e}
 
+
+/* ── Viewer Check Modal ── */
+#mod-viewer-check .modal{width:780px}
+.vc-filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding:10px 12px;background:var(--s2);border-radius:var(--rs)}
+.vc-filter-bar .fg{min-width:140px;flex:1}
+.vc-filter-bar label{font-size:10px;font-weight:700;color:var(--t3);display:block;margin-bottom:3px}
+.vc-filter-bar input,.vc-filter-bar select{border:1px solid var(--border);border-radius:var(--rs);padding:5px 8px;font-size:12px;background:var(--surface);color:var(--text);outline:none;width:100%}
+.vc-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.vc-sc{background:var(--s2);border-radius:var(--rs);padding:9px 11px;border:1px solid var(--b2)}
+.vc-sc .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:2px}
+.vc-sc .val{font-size:17px;font-weight:700}
+/* ── Note Modal ── */
+#mod-note .modal{width:480px}
+.note-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 7px;border-radius:20px;background:#fef3c7;color:#7c3d0e;font-weight:600;cursor:pointer;border:none}
+.note-badge:hover{background:#fde68a}
+
 /* ── Year Selector ── */
 #year-sel{font-size:12px;border:1px solid var(--border);border-radius:var(--rs);padding:5px 8px;background:var(--s2);color:var(--text);outline:none;font-weight:700;cursor:pointer}
 .year-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;background:#fef3c7;color:#7c3d0e}
@@ -203,6 +219,7 @@ header select,header input[type=month]{font-size:12px;border:1px solid var(--bor
   <input type="month" id="gm"/>
   <button class="btn btn-sm admin-only" id="btn-newyear" onclick="openNewYearWizard()" style="display:none;background:#fef3c7;border-color:#f59e0b;color:#7c3d0e">🎉 เริ่มปีใหม่</button>
   <button class="btn btn-a btn-sm" onclick="openRpt()">📄 ออกรายงาน</button>
+  <button class="btn btn-sm" id="btn-viewer-check" onclick="openViewerCheck()" style="display:none;background:#f0fdf4;border-color:#86efac;color:#15652e">🔍 ตรวจสอบค่าใช้จ่าย</button>
   <button class="btn btn-sm" id="btn-logout" onclick="doLogout()" style="display:none">ออกจากระบบ</button>
 </header>
 
@@ -365,6 +382,47 @@ header select,header input[type=month]{font-size:12px;border:1px solid var(--bor
   <div class="mf">
     <button class="btn" onclick="closeModal('mod-newyear')">ยกเลิก</button>
     <button class="btn btn-p" onclick="applyNewYear()">✅ สร้างโครงการปีใหม่</button>
+  </div>
+</div></div>
+
+
+<!-- ═══ Modal: Viewer Check Expenses ═══ -->
+<div class="ov" id="mod-viewer-check"><div class="modal" style="width:780px">
+  <div class="mh">🔍 ตรวจสอบค่าใช้จ่าย</div>
+  <div class="vc-filter-bar">
+    <div class="fg"><label>ฝ่าย</label><select id="vc-dept" onchange="vcFilter()"></select></div>
+    <div class="fg"><label>โครงการ</label><select id="vc-proj" onchange="vcFilter()"></select></div>
+    <div class="fg"><label>เดือน</label><input type="month" id="vc-month" onchange="vcFilter()"/></div>
+    <div class="fg"><label>ประเภท</label><input type="text" id="vc-type" placeholder="ทุกประเภท" oninput="vcFilter()"/></div>
+    <div class="fg" style="min-width:80px;max-width:100px"><label>&nbsp;</label>
+      <button class="btn btn-sm" onclick="vcClearFilter()" style="width:100%">ล้าง</button>
+    </div>
+  </div>
+  <div class="vc-summary" id="vc-summary"></div>
+  <div style="overflow-x:auto"><table class="tbl" id="vc-table">
+    <thead><tr>
+      <th>วันที่</th><th>ฝ่าย</th><th>โครงการ</th><th>ประเภท</th><th>รายละเอียด</th>
+      <th style="text-align:right">จำนวนเงิน</th><th style="text-align:center">หมายเหตุ</th>
+    </tr></thead>
+    <tbody id="vc-tbody"></tbody>
+  </table></div>
+  <div id="vc-empty" class="empty" style="display:none">ไม่พบรายการค่าใช้จ่าย</div>
+  <div class="mf"><button class="btn" onclick="closeModal('mod-viewer-check')">ปิด</button></div>
+</div></div>
+
+<!-- ═══ Modal: Note ═══ -->
+<div class="ov" id="mod-note"><div class="modal" style="width:460px">
+  <div class="mh">📝 หมายเหตุรายการ</div>
+  <input type="hidden" id="note-eid"/>
+  <div style="margin-bottom:10px;padding:10px 12px;background:var(--s2);border-radius:var(--rs);font-size:12px" id="note-exp-detail"></div>
+  <div class="fg">
+    <label style="font-size:11px;font-weight:700;color:var(--t2);display:block;margin-bottom:5px">หมายเหตุ / เหตุผลที่ยอดไม่ตรง</label>
+    <textarea id="note-text" rows="4" style="width:100%;border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;background:var(--s2)" placeholder="เช่น ยอดต่างจากใบเสร็จเนื่องจาก... / รอการอนุมัติ..."></textarea>
+  </div>
+  <div style="font-size:11px;color:var(--t3);margin-top:5px">หมายเหตุจะแสดงต่อทุกคนในระบบ (Viewer และ Admin)</div>
+  <div class="mf">
+    <button class="btn" onclick="closeModal('mod-note')">ยกเลิก</button>
+    <button class="btn btn-p" onclick="saveNote()">💾 บันทึกหมายเหตุ</button>
   </div>
 </div></div>
 
@@ -675,6 +733,8 @@ function doLogout(){
 function applyRole(){
   const isAdmin=currentRole==='admin';
   document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=isAdmin?'':'none';});
+  const btnVc=document.getElementById('btn-viewer-check');
+  if(btnVc)btnVc.style.display='';
   // ถ้า viewer มี deptId ให้ซ่อน overview ทั้งบริษัท
   const navOv=document.getElementById('nav-ov');
   if(navOv)navOv.style.display=(currentDeptId&&!isAdmin)?'none':'';
@@ -1284,11 +1344,13 @@ function vProj(pId){
   const spent=spP(pId,m);const rem=p.bud-spent;const pp=pct(spent,p.bud);
   const pExp=mE(m).filter(e=>e.pId===pId).sort((a,b)=>b.date.localeCompare(a.date));
 
-  const eRows=pExp.map(e=>`<tr>
+  // noteRows handles the expense rows with note buttons
+  const noteRows=pExp.map(e=>`<tr>
     <td style="font-size:11px;color:var(--t2)">${e.date}</td>
     <td>${e.type}</td><td style="color:var(--t2)">${e.desc||'—'}</td>
     <td style="font-weight:600">${fmt(e.amt)}</td>
-    <td>
+    <td style="text-align:center">${getNote(e.id)?`<button class="note-badge" onclick="openNoteModal(${e.id})" title="${getNote(e.id).replace(/"/g,\"'\")}">📝 ${getNote(e.id).slice(0,18)}${getNote(e.id).length>18?'…':''}</button>`:`<button class="btn btn-sm" onclick="openNoteModal(${e.id})" style="font-size:10px;padding:2px 7px;color:var(--t3)">+ หมายเหตุ</button>`}</td>
+    <td onclick="event.stopPropagation()">
       ${currentRole==='admin'?`<button class="bi" onclick="openEditExp(${e.id})" title="แก้ไข">✏️</button><button class="bi" onclick="delExp(${e.id})" title="ลบ" style="color:var(--danger)">🗑️</button>`:''}
     </td>
   </tr>`).join('');
@@ -1391,8 +1453,8 @@ function vProj(pId){
     <div class="ct">รายการค่าใช้จ่ายทั้งหมด (${pExp.length} รายการ)</div>
     ${!pExp.length?'<div class="empty">ยังไม่มีรายการ</div>':`
     <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr><th>วันที่</th><th>ประเภท</th><th>รายละเอียด</th><th>จำนวนเงิน</th><th></th></tr></thead>
-      <tbody>${eRows}</tbody>
+      <thead><tr><th>วันที่</th><th>ประเภท</th><th>รายละเอียด</th><th>จำนวนเงิน</th><th style="text-align:center">หมายเหตุ</th><th></th></tr></thead>
+      <tbody>${noteRows}</tbody>
     </table></div>`}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
@@ -1906,6 +1968,122 @@ function exportCSV(){
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download=`company_budget_${rptYear}.csv`;a.click();
+}
+
+
+// ══════════════════════════════════════════════════════
+// NOTES (stored in localStorage, keyed by expense id)
+// ══════════════════════════════════════════════════════
+function noteKey(eid){ return 'cb_note_'+eid; }
+function getNote(eid){ return localStorage.getItem(noteKey(eid))||''; }
+function setNote(eid,txt){ if(txt.trim()) localStorage.setItem(noteKey(eid),txt.trim()); else localStorage.removeItem(noteKey(eid)); }
+
+function openNoteModal(eid){
+  const e=E.find(x=>x.id===eid);
+  if(!e)return;
+  const p=gProj(e.pId);const d=gDept(e.dId);
+  document.getElementById('note-eid').value=eid;
+  document.getElementById('note-text').value=getNote(eid);
+  document.getElementById('note-exp-detail').innerHTML=
+    '<span style="font-weight:700">'+e.date+'</span>'
+    +' &nbsp;|&nbsp; <span style="color:var(--t2)">'+d.name+'</span>'
+    +' &nbsp;|&nbsp; '+(p.code?'<span style="font-family:monospace;font-size:10px;background:var(--s3);padding:1px 5px;border-radius:3px">'+p.code+'</span> ':'')+p.name
+    +'<br><span style="font-size:12px;color:var(--t2)">'+e.type+(e.desc?' — '+e.desc:'')+'</span>'
+    +' &nbsp;<strong style="float:right">฿'+Number(e.amt).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong>';
+  document.getElementById('mod-note').classList.add('open');
+  setTimeout(()=>document.getElementById('note-text').focus(),80);
+}
+
+function saveNote(){
+  const eid=+document.getElementById('note-eid').value;
+  const txt=document.getElementById('note-text').value;
+  setNote(eid,txt);
+  closeModal('mod-note');
+  // refresh viewer check table if open
+  if(document.getElementById('mod-viewer-check').classList.contains('open')) vcRender();
+  // refresh main view
+  renderMain();
+}
+
+// ══════════════════════════════════════════════════════
+// VIEWER CHECK
+// ══════════════════════════════════════════════════════
+function openViewerCheck(){
+  // fill dept dropdown
+  const vDs=viewableD();
+  const dSel=document.getElementById('vc-dept');
+  dSel.innerHTML='<option value="">ทุกฝ่าย</option>'+vDs.map(d=>'<option value="'+d.id+'">'+d.name+'</option>').join('');
+  // if viewer has fixed dept, pre-select
+  if(currentDeptId){dSel.value=String(currentDeptId);dSel.disabled=true;}else{dSel.disabled=false;}
+  // set month to current gm
+  document.getElementById('vc-month').value=gm.value||'';
+  document.getElementById('vc-type').value='';
+  vcFillProj();
+  vcRender();
+  document.getElementById('mod-viewer-check').classList.add('open');
+}
+
+function vcFillProj(){
+  const dId=+document.getElementById('vc-dept').value||0;
+  const ps=dId?P.filter(p=>p.dId===dId):viewableP();
+  document.getElementById('vc-proj').innerHTML='<option value="">ทุกโครงการ</option>'+ps.map(p=>'<option value="'+p.id+'">'+(p.code?p.code+' – ':'')+p.name+'</option>').join('');
+}
+
+function vcFilter(){vcFillProj();vcRender();}
+
+function vcClearFilter(){
+  if(!currentDeptId){document.getElementById('vc-dept').value='';}
+  document.getElementById('vc-proj').value='';
+  document.getElementById('vc-month').value=gm.value||'';
+  document.getElementById('vc-type').value='';
+  vcFillProj();vcRender();
+}
+
+function vcRender(){
+  const dId=+document.getElementById('vc-dept').value||0;
+  const pId=+document.getElementById('vc-proj').value||0;
+  const month=document.getElementById('vc-month').value||'';
+  const typeQ=(document.getElementById('vc-type').value||'').trim().toLowerCase();
+
+  let rows=viewableE();
+  if(dId)rows=rows.filter(e=>e.dId===dId);
+  if(pId)rows=rows.filter(e=>e.pId===pId);
+  if(month)rows=rows.filter(e=>e.date&&e.date.slice(0,7)===month);
+  if(typeQ)rows=rows.filter(e=>e.type&&e.type.toLowerCase().includes(typeQ));
+  rows=[...rows].sort((a,b)=>b.date.localeCompare(a.date));
+
+  // summary
+  const totalAmt=rows.reduce((s,e)=>s+e.amt,0);
+  const withNote=rows.filter(e=>getNote(e.id)).length;
+  const overProjs=new Set(rows.filter(e=>{const p=gProj(e.pId);return p.bud>0&&spP(e.pId,'')>p.bud;}).map(e=>e.pId)).size;
+  document.getElementById('vc-summary').innerHTML=
+    '<div class="vc-sc"><div class="lbl">รายการทั้งหมด</div><div class="val">'+rows.length+'</div></div>'+
+    '<div class="vc-sc"><div class="lbl">ยอดรวม</div><div class="val">฿'+Number(totalAmt).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div></div>'+
+    '<div class="vc-sc"><div class="lbl">มีหมายเหตุ</div><div class="val" style="color:var(--warn)">'+withNote+'</div></div>'+
+    '<div class="vc-sc"><div class="lbl">โครงการเกินงบ</div><div class="val" style="color:var(--danger)">'+overProjs+'</div></div>';
+
+  const tbody=document.getElementById('vc-tbody');
+  const empty=document.getElementById('vc-empty');
+  if(!rows.length){tbody.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+
+  tbody.innerHTML=rows.map(e=>{
+    const p=gProj(e.pId);const d=gDept(e.dId);
+    const note=getNote(e.id);
+    const noteBtn=note
+      ?'<button class="note-badge" onclick="openNoteModal('+e.id+')" title="'+note.replace(/"/g,\'\''+'")>📝 '+note.slice(0,20)+(note.length>20?'…':'')+'</button>'
+      :'<button class="btn btn-sm" onclick="openNoteModal('+e.id+')" style="font-size:10px;padding:2px 8px;color:var(--t3)">+ เพิ่ม</button>';
+    const rowStyle=note?'background:#fffbeb':'';
+    return'<tr style="'+rowStyle+'">'
+      +'<td style="font-size:11px;color:var(--t2);white-space:nowrap">'+e.date+'</td>'
+      +'<td style="font-size:12px"><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:2px;background:'+d.color+';display:inline-block"></span>'+d.name+'</span></td>'
+      +'<td style="font-size:12px">'+(p.code?'<span class="mono" style="font-size:10px;margin-right:4px">'+p.code+'</span>':'')+p.name+'</td>'
+      +'<td style="font-size:12px">'+e.type+'</td>'
+      +'<td style="font-size:12px;color:var(--t2)">'+( e.desc||'—')+'</td>'
+      +'<td style="text-align:right;font-weight:600">฿'+Number(e.amt).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
+      +'<td style="text-align:center;white-space:nowrap">'+noteBtn+'</td>'
+      +'</tr>';
+  }).join('');
 }
 
 // ══════════════════════════════════════════════════════
