@@ -1346,23 +1346,35 @@ function vProj(pId){
   const spent=spP(pId,m);const rem=p.bud-spent;const pp=pct(spent,p.bud);
   const pExp=mE(m).filter(e=>e.pId===pId).sort((a,b)=>b.date.localeCompare(a.date));
 
-  const eRows=pExp.map(e=>`<tr>
-    <td style="font-size:11px;color:var(--t2)">${e.date}</td>
-    <td>${e.type}</td><td style="color:var(--t2)">${e.desc||'—'}</td>
-    <td style="font-weight:600">${fmt(e.amt)}</td>
-    <td>
-      ${currentRole==='admin'?`<button class="bi" onclick="openEditExp(${e.id})" title="แก้ไข">✏️</button><button class="bi" onclick="delExp(${e.id})" title="ลบ" style="color:var(--danger)">🗑️</button>`:''}
-    </td>
-  </tr>`).join('');
-  const eRowsWithNote=pExp.map(e=>`<tr style="${getNote(e.id)?'background:#fffbeb':''}">
-    <td style="font-size:11px;color:var(--t2)">${e.date}</td>
-    <td>${e.type}</td><td style="color:var(--t2)">${e.desc||'—'}</td>
-    <td style="font-weight:600">${fmt(e.amt)}</td>
-    <td style="text-align:center">${noteBtnHtml(e.id)}</td>
-    <td onclick="event.stopPropagation()">
-      ${currentRole==='admin'?`<button class="bi" onclick="openEditExp(${e.id})" title="แก้ไข">✏️</button><button class="bi" onclick="delExp(${e.id})" title="ลบ" style="color:var(--danger)">🗑️</button>`:''}
-    </td>
-  </tr>`).join('');
+  const eRows=pExp.map(function(e){
+    var adminBtns2=currentRole==='admin'
+      ?'<button class="bi" onclick="openEditExp('+e.id+')" title="แก้ไข">✏️</button>'
+       +'<button class="bi" onclick="delExp('+e.id+')" title="ลบ" style="color:var(--danger)">🗑️</button>'
+      :'';
+    return'<tr>'
+      +'<td style="font-size:11px;color:var(--t2)">'+e.date+'</td>'
+      +'<td>'+e.type+'</td>'
+      +'<td style="color:var(--t2)">'+(e.desc||'—')+'</td>'
+      +'<td style="font-weight:600">'+fmt(e.amt)+'</td>'
+      +'<td>'+adminBtns2+'</td>'
+      +'</tr>';
+  }).join('');
+  const eRowsWithNote=pExp.map(function(e){
+    var nr=getNote(e.id);
+    var rowBg=nr?'style="background:#fffbeb"':'';
+    var adminBtns=currentRole==='admin'
+      ?'<button class="bi" onclick="openEditExp('+e.id+')" title="แก้ไข">✏️</button>'
+       +'<button class="bi" onclick="delExp('+e.id+')" title="ลบ" style="color:var(--danger)">🗑️</button>'
+      :'';
+    return'<tr '+rowBg+'>'
+      +'<td style="font-size:11px;color:var(--t2)">'+e.date+'</td>'
+      +'<td>'+e.type+'</td>'
+      +'<td style="color:var(--t2)">'+(e.desc||'—')+'</td>'
+      +'<td style="font-weight:600">'+fmt(e.amt)+'</td>'
+      +'<td style="text-align:center">'+noteBtnHtml(e.id)+'</td>'
+      +'<td onclick="event.stopPropagation()">'+adminBtns+'</td>'
+      +'</tr>';
+  }).join('');
 
   // group by date
   const byDate={};
